@@ -1,45 +1,30 @@
 #!/usr/bin/python
 from ucsmsdk.ucshandle import UcsHandle
 from ucsmsdk.mometa.equipment.EquipmentLocatorLed import EquipmentLocatorLed
-import sys, getopt
+import argparse
 
-def main(argv):
+parser = argparse.ArgumentParser(description='Disable all locator leds in a UCS domain.')
+parser.add_argument('-i','--ucsm_ip', help='UCSM IP Address',required=True)
+parser.add_argument('-u','--ucsm_usr',help='UCSM User', required=True)
+parser.add_argument('-p','--ucsm_pw',help='UCSM Password', required=True)
+args = parser.parse_args()
 
-    try:
-        opts,args = getopt.getopt(argv,"h:i:u:p:",["ucsm_ip=","ucsm_usr=","ucsm_pw"])
-    except getopt.GetoptError:
-        print 'disable_locator_leds.py -ip <ucsm ip address> -usr <ucsm user name> -pw <ucsm password>'
-        sys.exit(2)
-    for opt, arg in opts:
-        if opt == '-h':
-            print 'disable_locator_leds.py -i <ucsm ip address> -u <ucsm user name> -p <ucsm password>'
-            sys.exit()
-        elif opt in ("-i", "--ucsm_ip"):
-            ucsm_ip = arg
-        elif opt in ("-u", "--ucsm_usr"):
-            ucsm_usr = arg
-        elif opt in ("-p", "--ucsm_pw"):
-            ucsm_pw = arg
-    
-    # UCSM Login
-    try:
-        handle = UcsHandle(ucsm_ip,ucsm_usr,ucsm_pw)
-        handle.login()
-    except:
-        print "Unable to connect to UCSM " + ucsm_ip
-        raise
-    
-    # Query for Locator LEDs
-    locator_leds = handle.query_classid("EquipmentLocatorLed")
-    
-    # Turn all Locator LEDs off
-    for locator_led in locator_leds:
-        if locator_led.oper_state == 'on':
-            parentdn = locator_led.dn.replace('/locator-led','')
-            print "Turning off LED on " + parentdn
-            mo = EquipmentLocatorLed(parent_mo_or_dn=parentdn, id="1", admin_state="off", board_type="single", name="")
-            handle.add_mo(mo, True)
-            handle.commit()
+# UCSM Login
+try:
+    handle = UcsHandle(args.ucsm_ip,args.ucsm_usr,args.ucsm_pw)
+    handle.login()
+except:
+    print "Unable to connect to UCSM " + args.ucsm_ip
+    raise
 
-if __name__ == '__main__':
-    main(sys.argv[1:])
+# Query for Locator LEDs
+locator_leds = handle.query_classid("EquipmentLocatorLed")
+
+# Turn all Locator LEDs off
+for locator_led in locator_leds:
+    if locator_led.oper_state == 'on':
+        parentdn = locator_led.dn.replace('/locator-led','')
+        print "Turning off LED on " + parentdn
+        mo = EquipmentLocatorLed(parent_mo_or_dn=parentdn, id="1", admin_state="off", board_type="single", name="")
+        handle.add_mo(mo, True)
+        handle.commit()
