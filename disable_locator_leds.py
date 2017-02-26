@@ -25,6 +25,6 @@ for locator_led in locator_leds:
     if locator_led.oper_state == 'on':
         parentdn = locator_led.dn.replace('/locator-led','')
         print "Turning off LED on " + parentdn
-        mo = EquipmentLocatorLed(parent_mo_or_dn=parentdn, id="1", admin_state="off", board_type="single", name="")
+        mo = EquipmentLocatorLed(parent_mo_or_dn=parentdn, admin_state="off")
         handle.add_mo(mo, True)
         handle.commit()
